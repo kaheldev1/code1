@@ -5,7 +5,7 @@ CREATE TABLE users (
     password VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
+http://localhost/feedback_portal/index.html
 CREATE TABLE messages (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
@@ -19,4 +19,5 @@ CREATE TABLE issues (
     title VARCHAR(255),
     description TEXT,
     status ENUM('open', 'closed', 'pending') DEFAULT 'open'
+
 );
