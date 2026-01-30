@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PFP</title>
+  <title>Pasay Feedback Portal</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -77,10 +77,22 @@
       <p>Welcome, <span id="currentUser"></span>!</p>
       <button onclick="logout()" class="btn-secondary">Logout</button>
     </header>
+    
     <section class="submit-issue-section">
       <h3>Report a Concern</h3>
       <form id="issueForm">
-        <input type="text" id="issueTitle" placeholder="Concern Title (e.g., Broken Stoplight at Buendia)" required />
+        <input type="text" id="issueTitle" placeholder="Concern Title (e.g., Broken Stoplight)" required />
+        
+        <div class="location-group" style="display: flex; gap: 10px; margin-bottom: 10px;">
+          <select id="issueBarangay" required onchange="populateStreets()">
+            <option value="" disabled selected>Select Barangay</option>
+            </select>
+          
+          <select id="issueStreet" required disabled>
+            <option value="" disabled selected>Select Street</option>
+          </select>
+        </div>
+
         <select id="issueCategory" required>
           <option value="" disabled selected>Select Category</option>
           <option value="Garbage Collection">Garbage Collection</option>
@@ -90,7 +102,9 @@
           <option value="Public Safety">Public Safety</option>
           <option value="Others">Others</option>
         </select>
-        <textarea id="issueDesc" placeholder="Describe the location and specific details of the issue..." rows="4" required></textarea>
+        
+        <textarea id="issueDesc" placeholder="Describe specific details of the issue and also street..." rows="4" required></textarea>
+        
         <label for="issueImage">Attach Photo Evidence:</label>
         <input type="file" id="issueImage" accept="image/*" />
         <button type="submit">Submit Report</button>
