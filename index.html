@@ -22,11 +22,38 @@
     <p>Don't have an account? <a href="#" onclick="showRegister()">Register here</a></p>
   </div>
 
-   <button id="emergencyBtn" onclick="toggleEmergencyModal(true)" title="Hotlines" style="width: 45px; height: 45px; padding: 0;">
+  <button id="tutorialBtn" onclick="toggleTutorialModal(true)" title="How to use" style="width: 45px; height: 45px; padding: 0; position: fixed; right: 20px; bottom: 75px; background-color: #006633; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid white; cursor: pointer; z-index: 2500;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+    </svg>
+  </button>
+
+  <button id="emergencyBtn" onclick="toggleEmergencyModal(true)" title="Hotlines" style="width: 45px; height: 45px; padding: 0; position: fixed; right: 20px; bottom: 20px;">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
     </svg>
   </button>
+
+  <div id="tutorialModal" class="modal-overlay hidden">
+    <div class="modal-content" style="max-width: 350px;">
+      <div class="emergency-header">
+        <h3 style="margin: 0; font-size: 1.1rem; color: #006633;">User Guide</h3>
+      </div>
+      <div style="text-align: left; margin-top: 15px; font-size: 0.9rem; line-height: 1.6;">
+        <p><strong>1. Reporting:</strong> Fill out the form in the dashboard. Ensure you select the correct Barangay and Street for faster response.</p>
+        <p><strong>2. Evidence:</strong> Always attach a clear photo of the concern (e.g., potholes, uncollected garbage).</p>
+        <p><strong>3. Status Meaning:</strong> 
+          <br>• <span style="color: #666;">Pending</span> - Recently submitted.
+          <br>• <span style="color: #007bff;">In Progress</span> - Currently being addressed.
+          <br>• <span style="color: #28a745;">Resolved</span> - Issue has been fixed.
+        </p>
+        <p><strong>4. Communication:</strong> Click on your report to open the chat box and talk to the City Admin for updates.</p>
+      </div>
+      <button onclick="toggleTutorialModal(false)" class="btn-primary" style="width: 100%; margin-top: 15px; padding: 10px;">Got it!</button>
+    </div>
+  </div>
 
   <div id="emergencyModal" class="modal-overlay hidden">
   <div class="modal-content emergency-modal">
@@ -217,6 +244,11 @@
   </div>
 
   <script>
+    function toggleTutorialModal(show) {
+      const modal = document.getElementById('tutorialModal');
+      if (show) modal.classList.remove('hidden');
+      else modal.classList.add('hidden');
+    }
     function togglePrivacyModal(show) {
       const modal = document.getElementById('privacyModal');
       if (show) modal.classList.remove('hidden');
