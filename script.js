@@ -27,6 +27,45 @@ adminLogoutBtn?.addEventListener("click", logout);
 const ADMIN_USER = "admin";
 const ADMIN_PASS = "123";
 
+function initializeBarangays() {
+    const brgySelect = document.getElementById("issueBarangay");
+    if (!brgySelect) return;
+    
+    brgySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
+    for (let i = 1; i <= 201; i++) {
+        const opt = document.createElement("option");
+        opt.value = `Barangay ${i}`;
+        opt.textContent = `Barangay ${i}`;
+        brgySelect.appendChild(opt);
+    }
+}
+
+function populateStreets() {
+    const brgySelect = document.getElementById("issueBarangay");
+    const streetSelect = document.getElementById("issueStreet");
+    if (!brgySelect || !streetSelect) return;
+
+    const selectedBrgy = brgySelect.value;
+
+    const pasayStreets = {
+        "Barangay 183": ["Villamor Airbase", "Piczon St", "Andrews Ave", "Sales Road"],
+        "Barangay 76": ["SM Mall of Asia", "Diokno Blvd", "Coral Way", "J.W. Diokno"],
+        "Barangay 178": ["Maricaban St", "Apelo Cruz", "P. Santos"],
+        "Default": ["Main Street", "Interior Road", "Side Alley"]
+    };
+
+    streetSelect.innerHTML = '<option value="" disabled selected>Select Street</option>';
+    streetSelect.disabled = false;
+
+    const streets = pasayStreets[selectedBrgy] || pasayStreets["Default"];
+    streets.forEach(street => {
+        const opt = document.createElement("option");
+        opt.value = street;
+        opt.textContent = street;
+        streetSelect.appendChild(opt);
+    });
+}
+
 function openImageModal(src) {
     const modal = document.getElementById("imageModal");
     const modalImg = document.getElementById("modalImg");
@@ -122,6 +161,7 @@ function showDashboard() {
     clearForms();
     currentUserEl.textContent = currentUser;
     switchPage(dashboardPage);
+    initializeBarangays(); 
     loadUserIssues();
 }
 
@@ -159,14 +199,13 @@ function generateTrackingNumber() {
 }
 
 function clearForms() {
-    document.querySelectorAll("input, textarea, select").forEach(el => {
+    document.querySelectorAll("#loginForm input, #registerForm input, #issueForm input, #issueForm textarea").forEach(el => {
         if (el.type !== "button" && el.type !== "submit" && el.type !== "file") {
             el.value = "";
         }
         if (el.type === "file") el.value = null;
     });
 }
-
 
 document.getElementById("registerForm").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -188,7 +227,6 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
         showToast("Registration error", "error");
     }
 });
-
 
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -228,6 +266,15 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
 
 issueForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+    
+    const brgyValue = document.getElementById("issueBarangay")?.value;
+    const streetValue = document.getElementById("issueStreet")?.value;
+    
+    if (!brgyValue || !streetValue) {
+        showToast("Please select a Barangay and Street.", "error");
+        return;
+    }
+
     const imageFile = issueImageInput.files[0];
     let imageUrl = null;
 
@@ -243,6 +290,8 @@ issueForm.addEventListener("submit", async (e) => {
                 title: issueTitleInput.value,
                 desc: issueDescInput.value,
                 category: issueCategoryInput.value,
+                barangay: brgyValue,
+                street: streetValue,
                 image: imageUrl,
             }),
         });
@@ -251,6 +300,7 @@ issueForm.addEventListener("submit", async (e) => {
         if (data.success) {
             showToast(`Submitted! Tracking: ${data.tracking_id}`, "success");
             issueForm.reset();
+            document.getElementById("issueStreet").disabled = true;
             loadUserIssues();
         } else {
             showToast("Error: " + data.message, "error");
@@ -274,27 +324,26 @@ async function loadUserIssues() {
     try {
         const res = await fetch(BASE_URL + "get_user_issues.php?user=" + encodeURIComponent(currentUser));
         const issues = await res.json();
-
         issuesList.innerHTML = "";
         if (!issues || issues.length === 0) {
             issuesList.innerHTML = "<p>No reports found.</p>";
             return;
         }
-
         issues.forEach((issue) => {
             const div = document.createElement("div");
             div.classList.add("issue-card");
             
+            const displayBrgy = issue.barangay || "Barangay Not Set";
+            const displayStreet = issue.street || "Street Not Set";
+
             const fullImgPath = issue.image_path ? BASE_URL + issue.image_path : null;
             let imageHtml = fullImgPath ? `<img src="${fullImgPath}" alt="Issue" onclick="openImageModal('${fullImgPath}')" style="cursor:zoom-in;">` : "";
-            
-            let chatHtml = (issue.messages || []).map((m) => 
-                formatChatMessage(m, m.sender === currentUser ? "chat-user" : "chat-admin")
-            ).join("");
+            let chatHtml = (issue.messages || []).map((m) => formatChatMessage(m, m.sender === currentUser ? "chat-user" : "chat-admin")).join("");
 
             div.innerHTML = `
                 ${imageHtml}
                 <h4>${issue.title} <small>[${issue.tracking_id}]</small></h4>
+                <p><strong>Location:</strong> ${displayBrgy}, ${displayStreet}</p>
                 <p><strong>Category:</strong> ${issue.category}</p>
                 <p>${issue.description}</p>
                 <p>Status: <span class="status-badge status-${issue.status.replace(/\s/g, "")}">${issue.status}</span></p>
@@ -307,7 +356,6 @@ async function loadUserIssues() {
             issuesList.appendChild(div);
             cardObserver.observe(div);
         });
-
         attachChatListeners(loadUserIssues);
     } catch (err) {
         issuesList.innerHTML = "<p>Failed to load issues.</p>";
@@ -339,32 +387,32 @@ async function loadAllIssues() {
         issues.forEach((issue) => {
             const div = document.createElement("div");
             div.classList.add("issue-card");
+            
+            const displayBrgy = issue.barangay || "Missing Brgy";
+            const displayStreet = issue.street || "Missing Street";
 
             const fullImgPath = issue.image_path ? BASE_URL + issue.image_path : null;
             let imageHtml = fullImgPath ? `<img src="${fullImgPath}" alt="Issue" onclick="openImageModal('${fullImgPath}')" style="cursor:zoom-in;">` : "";
-            
-            let chatHtml = (issue.messages || []).map((m) => 
-                formatChatMessage(m, m.sender === "Admin" ? "chat-admin" : "chat-user")
-            ).join("");
+            let chatHtml = (issue.messages || []).map((m) => formatChatMessage(m, m.sender === "Admin" ? "chat-admin" : "chat-user")).join("");
 
             div.innerHTML = `
                 ${imageHtml}
                 <h4>${issue.title} <small>[${issue.tracking_id}]</small></h4>
+                <p><strong>Location:</strong> <span style="color:#006633; font-weight:bold;">${displayBrgy}</span>, ${displayStreet}</p>
                 <p><strong>Category:</strong> ${issue.category}</p>
                 <p><strong>User:</strong> ${issue.user}</p>
                 <p>${issue.description}</p>
                 <p><strong>Status:</strong> <span class="status-badge status-${issue.status.replace(/\s/g, "")}">${issue.status}</span></p>
                 <div class="chat-box">${chatHtml || "<p>No messages yet.</p>"}</div>
-                
                 <div class="admin-chat-area">
                     <textarea placeholder="Type a reply..." class="chat-input"></textarea>
+                    <div id="status-msg-${issue.tracking_id}" style="font-size: 0.8rem; color: #27ae60; margin-bottom: 5px;"></div>
                     <div class="chat-controls">
                         <input type="file" class="admin-proof-file hidden" id="proof-${issue.tracking_id}" accept="image/*">
                         <button class="btn-attachment" onclick="document.getElementById('proof-${issue.tracking_id}').click()" title="Attach Proof">📎</button>
                         <button class="btn-chat" data-id="${issue.tracking_id}">Reply</button>
                     </div>
                 </div>
-
                 <div class="admin-controls">
                     <label>Update Status:</label>
                     <select class="status-select" data-id="${issue.tracking_id}">
@@ -378,7 +426,6 @@ async function loadAllIssues() {
             adminIssuesList.appendChild(div);
             cardObserver.observe(div);
         });
-
         attachChatListeners(loadAllIssues);
         attachAdminActionListeners();
     } catch (err) {
@@ -387,37 +434,38 @@ async function loadAllIssues() {
 }
 
 function attachChatListeners(refreshCallback) {
+    document.querySelectorAll(".admin-proof-file").forEach((fileInput) => {
+        fileInput.onchange = (e) => {
+            const issueId = e.target.id.replace('proof-', '');
+            const statusMsg = document.getElementById(`status-msg-${issueId}`);
+            if (e.target.files.length > 0) {
+                statusMsg.textContent = "Image has ready to send";
+            } else {
+                statusMsg.textContent = "";
+            }
+        };
+    });
+
     document.querySelectorAll(".btn-chat").forEach((btn) => {
         btn.onclick = async (e) => {
             const issueId = e.target.dataset.id;
             const container = e.target.closest('.admin-chat-area') || e.target.closest('.chat-input-container');
             const input = container.querySelector('.chat-input');
             const fileInput = container.querySelector('.admin-proof-file');
-            
+            const statusMsg = document.getElementById(`status-msg-${issueId}`);
             const text = input.value.trim();
             
-           
-            if (text) {
-                await sendMessage(issueId, text, isAdmin ? "Admin" : currentUser);
-            }
-
-            
+            if (text) await sendMessage(issueId, text, isAdmin ? "Admin" : currentUser);
             if (fileInput && fileInput.files[0]) {
                 const compressedImg = await compressImage(fileInput.files[0]);
                 await sendMessage(issueId, compressedImg, isAdmin ? "Admin" : currentUser);
                 fileInput.value = ""; 
+                if (statusMsg) statusMsg.textContent = "";
             }
-
             if (text || (fileInput && fileInput.files[0])) {
                 input.value = "";
                 refreshCallback();
             }
-        };
-    });
-
-    document.querySelectorAll(".admin-proof-file").forEach(input => {
-        input.onchange = (e) => {
-            if (e.target.files[0]) showToast("Image ready to send.", "info");
         };
     });
 }
@@ -430,7 +478,6 @@ function attachAdminActionListeners() {
             loadAllIssues();
         };
     });
-
     document.querySelectorAll(".delete-btn").forEach((btn) => {
         btn.onclick = async (e) => {
             const id = e.target.dataset.id;
@@ -526,6 +573,8 @@ document.addEventListener("DOMContentLoaded", () => {
     categoryFilter?.addEventListener("change", loadAllIssues);
     searchIssuesInput?.addEventListener("input", loadAllIssues);
 
+    document.getElementById("issueBarangay")?.addEventListener("change", populateStreets);
+
     document.getElementById("viewAnalyticsBtn")?.addEventListener("click", async () => {
         adminDashboardPage.classList.add("hidden");
         analyticsPage.classList.remove("hidden");
@@ -548,11 +597,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function toggleEmergencyModal(show) {
     const modal = document.getElementById('emergencyModal');
-    if (show) {
-        modal.classList.remove('hidden');
-    } else {
-        modal.classList.add('hidden');
-    }
+    if (show) modal.classList.remove('hidden');
+    else modal.classList.add('hidden');
 }
 
 window.onclick = function(event) {
