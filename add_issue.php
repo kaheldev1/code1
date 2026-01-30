@@ -7,6 +7,9 @@ $user = $data['user'];
 $title = $data['title'];
 $desc = $data['desc'];
 $category = $data['category'];
+$barangay = $data['barangay'] ?? null; 
+$street = $data['street'] ?? null;
+
 $imageData = $data['image'] ?? null;
 $imagePath = null;
 
@@ -41,8 +44,8 @@ if ($imageData) {
     }
 }
 
-$stmt = $conn->prepare("INSERT INTO issues (tracking_id, user, title, description, category, image_path, status) VALUES (?, ?, ?, ?, ?, ?, 'Pending')");
-$stmt->bind_param("ssssss", $tracking_id, $user, $title, $desc, $category, $imagePath);
+$stmt = $conn->prepare("INSERT INTO issues (tracking_id, user, title, description, category, barangay, street, image_path, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending')");
+$stmt->bind_param("ssssssss", $tracking_id, $user, $title, $desc, $category, $barangay, $street, $imagePath);
 
 if ($stmt->execute()) {
   echo json_encode(["success" => true, "tracking_id" => $tracking_id]);
