@@ -1,4 +1,4 @@
-
+Ito yung ippaste niyo dun sa SQL localhost.
 
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -30,3 +30,4 @@ CREATE TABLE messages (
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (issue_tracking_id) REFERENCES issues(tracking_id)
 );
+
