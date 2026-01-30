@@ -1,27 +1,32 @@
+
+
 CREATE TABLE users (
-    id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
-    gender VARCHAR(10) NOT NULL,
+    gender VARCHAR(50),
     password VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE issues (
-    id INT(11) AUTO_INCREMENT PRIMARY KEY,
-    tracking_id VARCHAR(50) NOT NULL,
-    user VARCHAR(255) NOT NULL,
-    title VARCHAR(255) NOT NULL,
-    description TEXT NOT NULL,
-    category VARCHAR(100) NOT NULL,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tracking_id VARCHAR(50) UNIQUE,
+    user VARCHAR(255),
+    title VARCHAR(255),
+    description TEXT,
+    category VARCHAR(100),
+    barangay VARCHAR(100),
+    street VARCHAR(100),
     status VARCHAR(50) DEFAULT 'Pending',
     image_path VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE messages (
-    id INT(11) AUTO_INCREMENT PRIMARY KEY,
-    issue_tracking_id VARCHAR(50) NOT NULL,
-    sender VARCHAR(255) NOT NULL,
-    text TEXT NOT NULL,
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    issue_tracking_id VARCHAR(50),
+    sender VARCHAR(255),
+    text TEXT,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (issue_tracking_id) REFERENCES issues(tracking_id)
 );
