@@ -82,7 +82,6 @@ h3 {
     font-size: 1.4rem;
     margin-bottom: 20px;
 }
-
 input[type="text"],
 input[type="password"],
 input[type="email"],
@@ -96,7 +95,8 @@ select {
     background-color: var(--input-bg);
     box-sizing: border-box;
     font-size: 16px;
-    color: var(--text-dark);
+    color: var(--text-dark); 
+    appearance: auto; 
 }
 
 input::placeholder,
@@ -938,4 +938,26 @@ body, h1, h2, h3, h4, h5, h6, p, span, div {
     justify-content: flex-end;
     gap: 10px;
     align-items: center;
+}
+.loc-badge {
+    background-color: #e8f4fd;
+    color: #2980b9;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid #b3d7ef;
+    display: inline-block;
+    margin-top: 5px;
+}
+
+#issueBarangay, #issueStreet {
+    flex: 1;
+}
+
+@media (max-width: 480px) {
+    #issueForm div {
+        flex-direction: column;
+        gap: 0 !important;
+    }
 }
