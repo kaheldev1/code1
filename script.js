@@ -21,11 +21,27 @@ const categoryFilter = document.getElementById("categoryFilter");
 const searchIssuesInput = document.getElementById("searchIssues");
 const adminLogoutBtn = document.getElementById("adminLogout");
 
+const tutorialBtn = document.getElementById("tutorialBtn");
+const emergencyBtn = document.getElementById("emergencyBtn");
+
 const pages = document.querySelectorAll(".page");
 adminLogoutBtn?.addEventListener("click", logout);
 
 const ADMIN_USER = "admin";
 const ADMIN_PASS = "123";
+
+function toggleFloatingButtons(show) {
+    if (!tutorialBtn || !emergencyBtn) return;
+    if (show) {
+        tutorialBtn.classList.remove("hidden");
+        emergencyBtn.classList.remove("hidden");
+        tutorialBtn.classList.add("anim-in");
+        emergencyBtn.classList.add("anim-in");
+    } else {
+        tutorialBtn.classList.add("hidden");
+        emergencyBtn.classList.add("hidden");
+    }
+}
 
 function initializeBarangays() {
     const brgySelect = document.getElementById("issueBarangay");
@@ -46,7 +62,6 @@ function populateStreets() {
     if (!brgySelect || !streetSelect) return;
 
     const selectedBrgy = brgySelect.value;
-
     const pasayStreets = {
         "Barangay 183": ["Villamor Airbase", "Piczon St", "Andrews Ave", "Sales Road"],
         "Barangay 76": ["SM Mall of Asia", "Diokno Blvd", "Coral Way", "J.W. Diokno"],
@@ -56,7 +71,6 @@ function populateStreets() {
 
     streetSelect.innerHTML = '<option value="" disabled selected>Select Street</option>';
     streetSelect.disabled = false;
-
     const streets = pasayStreets[selectedBrgy] || pasayStreets["Default"];
     streets.forEach(street => {
         const opt = document.createElement("option");
@@ -92,7 +106,6 @@ async function compressImage(file) {
                 const MAX_WIDTH = 800; 
                 let width = img.width;
                 let height = img.height;
-
                 if (width > MAX_WIDTH) {
                     height *= MAX_WIDTH / width;
                     width = MAX_WIDTH;
@@ -114,7 +127,6 @@ function formatChatMessage(m, senderClass) {
     } else {
         contentHtml = `<span>${m.text}</span>`;
     }
-
     return `
         <div class="chat-message ${senderClass}">
             <strong>${m.sender}:</strong>
@@ -135,7 +147,7 @@ function animateIn(el) {
     el.addEventListener("animationend", handler);
 }
 
-function animateOut(el) {
+async function animateOut(el) {
     return new Promise((resolve) => {
         el.classList.add("anim-out");
         const handler = () => {
@@ -154,21 +166,32 @@ async function switchPage(toEl) {
     animateIn(toEl);
 }
 
-function showLogin() { clearForms(); switchPage(loginPage); }
-function showRegister() { clearForms(); switchPage(registerPage); }
+function showLogin() { 
+    clearForms(); 
+    switchPage(loginPage); 
+    toggleFloatingButtons(true); 
+}
+
+function showRegister() { 
+    clearForms(); 
+    switchPage(registerPage); 
+    toggleFloatingButtons(true); 
+}
 
 function showDashboard() {
     clearForms();
-    currentUserEl.textContent = currentUser;
+    if (currentUserEl) currentUserEl.textContent = currentUser;
     switchPage(dashboardPage);
     initializeBarangays(); 
     loadUserIssues();
+    toggleFloatingButtons(true); 
 }
 
 function showAdminDashboard() {
     clearForms();
     switchPage(adminDashboardPage);
     loadAllIssues();
+    toggleFloatingButtons(false); 
 }
 
 function logout() {
@@ -178,6 +201,7 @@ function logout() {
     localStorage.removeItem("currentUser");
     localStorage.removeItem("userRole");
     switchPage(loginPage);
+    toggleFloatingButtons(true);
 }
 
 function showToast(message, type = "info") {
@@ -207,13 +231,12 @@ function clearForms() {
     });
 }
 
-document.getElementById("registerForm").addEventListener("submit", async (e) => {
+document.getElementById("registerForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const username = document.getElementById("regUsername").value;
     const email = document.getElementById("regEmail").value;
     const gender = document.getElementById("regGender").value;
     const password = document.getElementById("regPassword").value;
-
     try {
         const res = await fetch(BASE_URL + "register.php", {
             method: "POST",
@@ -228,7 +251,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
     }
 });
 
-document.getElementById("loginForm").addEventListener("submit", async (e) => {
+document.getElementById("loginForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
@@ -249,7 +272,6 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
             body: JSON.stringify({ username, password }),
         });
         const data = await res.json();
-
         if (data.success) {
             currentUser = data.user.username;
             localStorage.setItem("currentUser", currentUser);
@@ -264,23 +286,18 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
     }
 });
 
-issueForm.addEventListener("submit", async (e) => {
+issueForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    
     const brgyValue = document.getElementById("issueBarangay")?.value;
     const streetValue = document.getElementById("issueStreet")?.value;
-    
     if (!brgyValue || !streetValue) {
         showToast("Please select a Barangay and Street.", "error");
         return;
     }
-
     const imageFile = issueImageInput.files[0];
     let imageUrl = null;
-
     try {
         if (imageFile) imageUrl = await compressImage(imageFile);
-
         const res = await fetch(BASE_URL + "add_issue.php", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -295,12 +312,11 @@ issueForm.addEventListener("submit", async (e) => {
                 image: imageUrl,
             }),
         });
-
         const data = await res.json();
         if (data.success) {
             showToast(`Submitted! Tracking: ${data.tracking_id}`, "success");
             issueForm.reset();
-            document.getElementById("issueStreet").disabled = true;
+            if(document.getElementById("issueStreet")) document.getElementById("issueStreet").disabled = true;
             loadUserIssues();
         } else {
             showToast("Error: " + data.message, "error");
@@ -320,6 +336,7 @@ const cardObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.12 });
 
 async function loadUserIssues() {
+    if(!issuesList) return;
     issuesList.innerHTML = '<div class="loader"></div>';
     try {
         const res = await fetch(BASE_URL + "get_user_issues.php?user=" + encodeURIComponent(currentUser));
@@ -332,18 +349,13 @@ async function loadUserIssues() {
         issues.forEach((issue) => {
             const div = document.createElement("div");
             div.classList.add("issue-card");
-            
-            const displayBrgy = issue.barangay || "Barangay Not Set";
-            const displayStreet = issue.street || "Street Not Set";
-
             const fullImgPath = issue.image_path ? BASE_URL + issue.image_path : null;
             let imageHtml = fullImgPath ? `<img src="${fullImgPath}" alt="Issue" onclick="openImageModal('${fullImgPath}')" style="cursor:zoom-in;">` : "";
             let chatHtml = (issue.messages || []).map((m) => formatChatMessage(m, m.sender === currentUser ? "chat-user" : "chat-admin")).join("");
-
             div.innerHTML = `
                 ${imageHtml}
                 <h4>${issue.title} <small>[${issue.tracking_id}]</small></h4>
-                <p><strong>Location:</strong> ${displayBrgy}, ${displayStreet}</p>
+                <p><strong>Location:</strong> ${issue.barangay}, ${issue.street}</p>
                 <p><strong>Category:</strong> ${issue.category}</p>
                 <p>${issue.description}</p>
                 <p>Status: <span class="status-badge status-${issue.status.replace(/\s/g, "")}">${issue.status}</span></p>
@@ -363,11 +375,11 @@ async function loadUserIssues() {
 }
 
 async function loadAllIssues() {
+    if(!adminIssuesList) return;
     adminIssuesList.innerHTML = '<div class="loader"></div>';
     try {
         const res = await fetch(BASE_URL + "get_all_issues.php");
         let issues = await res.json();
-
         const filterStatus = statusFilter.value || "all";
         const filterCategory = categoryFilter.value || "all";
         const searchQuery = searchIssuesInput.value?.toLowerCase() || "";
@@ -377,28 +389,21 @@ async function loadAllIssues() {
             const matchSearch = issue.tracking_id.toLowerCase().includes(searchQuery);
             return matchStatus && matchCategory && matchSearch;
         });
-
         adminIssuesList.innerHTML = "";
         if (!issues || issues.length === 0) {
             adminIssuesList.innerHTML = "<p>No issues found.</p>";
             return;
         }
-
         issues.forEach((issue) => {
             const div = document.createElement("div");
             div.classList.add("issue-card");
-            
-            const displayBrgy = issue.barangay || "Missing Brgy";
-            const displayStreet = issue.street || "Missing Street";
-
             const fullImgPath = issue.image_path ? BASE_URL + issue.image_path : null;
             let imageHtml = fullImgPath ? `<img src="${fullImgPath}" alt="Issue" onclick="openImageModal('${fullImgPath}')" style="cursor:zoom-in;">` : "";
             let chatHtml = (issue.messages || []).map((m) => formatChatMessage(m, m.sender === "Admin" ? "chat-admin" : "chat-user")).join("");
-
             div.innerHTML = `
                 ${imageHtml}
                 <h4>${issue.title} <small>[${issue.tracking_id}]</small></h4>
-                <p><strong>Location:</strong> <span style="color:#006633; font-weight:bold;">${displayBrgy}</span>, ${displayStreet}</p>
+                <p><strong>Location:</strong> <span style="color:#006633; font-weight:bold;">${issue.barangay}</span>, ${issue.street}</p>
                 <p><strong>Category:</strong> ${issue.category}</p>
                 <p><strong>User:</strong> ${issue.user}</p>
                 <p>${issue.description}</p>
@@ -439,13 +444,12 @@ function attachChatListeners(refreshCallback) {
             const issueId = e.target.id.replace('proof-', '');
             const statusMsg = document.getElementById(`status-msg-${issueId}`);
             if (e.target.files.length > 0) {
-                statusMsg.textContent = "Image has ready to send";
+                statusMsg.textContent = "Image ready to send";
             } else {
                 statusMsg.textContent = "";
             }
         };
     });
-
     document.querySelectorAll(".btn-chat").forEach((btn) => {
         btn.onclick = async (e) => {
             const issueId = e.target.dataset.id;
@@ -454,7 +458,6 @@ function attachChatListeners(refreshCallback) {
             const fileInput = container.querySelector('.admin-proof-file');
             const statusMsg = document.getElementById(`status-msg-${issueId}`);
             const text = input.value.trim();
-            
             if (text) await sendMessage(issueId, text, isAdmin ? "Admin" : currentUser);
             if (fileInput && fileInput.files[0]) {
                 const compressedImg = await compressImage(fileInput.files[0]);
@@ -527,13 +530,11 @@ function loadAnalytics(issues) {
 
     const chartLabels = ["Garbage Collection", "Traffic & Stoplights", "Road Maintenance", "Street Lighting", "Public Safety", "Others"];
     const counts = { "Garbage Collection": 0, "Traffic & Stoplights": 0, "Road Maintenance": 0, "Street Lighting": 0, "Public Safety": 0, "Others": 0 };
-
     issues.forEach(i => {
         const cat = i.category || "Others";
         if (counts.hasOwnProperty(cat)) counts[cat]++;
         else counts["Others"]++;
     });
-
     const ctx = document.getElementById("issuesByCategoryChart");
     if (!ctx) return;
     if (window.categoryChart) window.categoryChart.destroy();
@@ -572,12 +573,12 @@ document.addEventListener("DOMContentLoaded", () => {
     statusFilter?.addEventListener("change", loadAllIssues);
     categoryFilter?.addEventListener("change", loadAllIssues);
     searchIssuesInput?.addEventListener("input", loadAllIssues);
-
     document.getElementById("issueBarangay")?.addEventListener("change", populateStreets);
 
     document.getElementById("viewAnalyticsBtn")?.addEventListener("click", async () => {
         adminDashboardPage.classList.add("hidden");
         analyticsPage.classList.remove("hidden");
+        toggleFloatingButtons(false);
         try {
             const res = await fetch(BASE_URL + "get_all_issues.php");
             const issues = await res.json();
@@ -588,6 +589,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("backToIssuesBtn")?.addEventListener("click", () => {
         analyticsPage.classList.add("hidden");
         adminDashboardPage.classList.remove("hidden");
+        toggleFloatingButtons(false);
     });
 
     document.getElementById("exportCSV")?.addEventListener("click", () => {
