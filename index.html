@@ -3,16 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pasay Feedback Portal</title>
+  <title>Pasay Konek Portal</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+<div id="adminTutorialModal" class="modal-overlay hidden">
+  <div class="modal-content" style="max-width: 380px;">
+    <div class="emergency-header">
+      <h3 style="margin: 0; font-size: 1.1rem; color: #006633;">Admin Dashboard Guide</h3>
+    </div>
+    <div style="text-align: left; margin-top: 15px; font-size: 0.9rem; line-height: 1.6;">
+      <p><strong>1. Filter & Search:</strong> Use the sidebar to filter reports by Status or Category, or search for a specific Tracking ID.</p>
+      <p><strong>2. Update Status:</strong> Change a report's status (e.g., to "In Progress" or "Resolved") to keep residents informed.</p>
+      <p><strong>3. Analytics:</strong> Click <i>"View City Analytics"</i> to see visual data and trends of reported issues.</p>
+      <p><strong>4. Export Data:</strong> Download all records as a CSV file for official documentation and offline reporting.</p>
+      <p><strong>5. Clear Data:</strong> This button is for system maintenance; it permanently deletes all registered user accounts from the database.</p>
+    </div>
+    <button onclick="toggleAdminTutorial(false)" class="btn-primary" style="width: 100%; margin-top: 15px; padding: 10px;">Got it!</button>
+  </div>
+</div>
+
+<button id="adminTutorialBtn" onclick="toggleAdminTutorial(true)" title="Admin Help" style="width: 45px; height: 45px; padding: 0; position: fixed; right: 20px; bottom: 75px; background-color: #FFCC00; border-radius: 50%; display: none; justify-content: center; align-items: center; border: 2px solid #006633; cursor: pointer; z-index: 2500; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#006633" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"></circle>
+    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+  </svg>
+</button>
 <body>
   <div class="container page" id="loginPage">
     <div class="logo-container">
       <img src="IMG/pasay1.png" alt="Pasay City Logo" class="logo-img">
     </div>
-    <h2>Pasay City Feedback Portal</h2>
+    <h2>Pasay Konek Portal</h2>
     <p>Help us build a better city.</p>
     <form id="loginForm">
       <input type="text" id="username" placeholder="Username" required />
@@ -153,7 +176,7 @@
         <button id="adminLogout" class="btn-secondary">Logout</button>
       </div>
     </header>
-
+     
     <div id="issuesSection" class="filters-and-issues">
       <aside class="sidebar">
         <h3>Report Filters</h3>
