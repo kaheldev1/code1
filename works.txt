@@ -22,6 +22,10 @@ CREATE TABLE issues (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+ALTER TABLE issues 
+ADD barangay VARCHAR(100) AFTER category,
+ADD street VARCHAR(100) AFTER barangay;
+
 CREATE TABLE messages (
     id INT AUTO_INCREMENT PRIMARY KEY,
     issue_tracking_id VARCHAR(50),
@@ -30,4 +34,5 @@ CREATE TABLE messages (
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (issue_tracking_id) REFERENCES issues(tracking_id)
 );
+
 
