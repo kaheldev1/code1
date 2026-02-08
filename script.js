@@ -20,10 +20,8 @@ const statusFilter = document.getElementById("statusFilter");
 const categoryFilter = document.getElementById("categoryFilter");
 const searchIssuesInput = document.getElementById("searchIssues");
 const adminLogoutBtn = document.getElementById("adminLogout");
-
 const tutorialBtn = document.getElementById("tutorialBtn");
 const emergencyBtn = document.getElementById("emergencyBtn");
-
 const pages = document.querySelectorAll(".page");
 adminLogoutBtn?.addEventListener("click", logout);
 
@@ -229,7 +227,25 @@ function clearForms() {
         }
         if (el.type === "file") el.value = null;
     });
+    const streetSelect = document.getElementById("issueStreet");
+    if (streetSelect) {
+        streetSelect.innerHTML = '<option value="" disabled selected>Select Street</option>';
+        streetSelect.disabled = true; 
+    }
+
+    const brgySelect = document.getElementById("issueBarangay");
+    if (brgySelect) {
+        brgySelect.selectedIndex = 0; 
+    }
 }
+
+document.getElementById("deleteAllUsers")?.addEventListener("click", async () => {
+    if (confirm("Are you sure you want to delete all users ?")) {
+      const res = await fetch(BASE_URL + "delete_all_users.php", { method: "POST" });
+      const data = await res.json();
+      showToast(data.message);
+    }
+  });
 
 document.getElementById("registerForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -608,4 +624,34 @@ window.onclick = function(event) {
     const imgModal = document.getElementById('imageModal');
     if (event.target == modal) toggleEmergencyModal(false);
     if (event.target == imgModal) closeImageModal();
+}
+function toggleAdminTutorial(show) {
+    const modal = document.getElementById('adminTutorialModal');
+    if (show) modal.classList.remove('hidden');
+    else modal.classList.add('hidden');
+}
+function showAdminDashboard() {
+    clearForms();
+    switchPage(adminDashboardPage);
+    loadAllIssues();
+    
+    
+    if (tutorialBtn) tutorialBtn.style.display = "none"; 
+    const adminBtn = document.getElementById("adminTutorialBtn");
+    if (adminBtn) adminBtn.style.display = "flex"; 
+}   
+function logout() {
+    clearForms();
+    currentUser = null;
+    isAdmin = false;
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("userRole");
+    
+   
+    const adminBtn = document.getElementById("adminTutorialBtn");
+    if (adminBtn) adminBtn.style.display = "none";
+    if (tutorialBtn) tutorialBtn.style.display = "flex";
+    
+    switchPage(loginPage);
+    toggleFloatingButtons(true);
 }
