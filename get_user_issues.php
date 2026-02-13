@@ -1,11 +1,6 @@
 <?php
 include 'db.php';
-$user = $_GET['user'] ?? '';
-
-$stmt = $conn->prepare("SELECT * FROM issues WHERE user = ? ORDER BY id DESC");
-$stmt->bind_param("s", $user);
-$stmt->execute();
-$res = $stmt->get_result();
+$res = $conn->query("SELECT * FROM issues ORDER BY id DESC");
 
 $issues = [];
 while ($row = $res->fetch_assoc()) {
